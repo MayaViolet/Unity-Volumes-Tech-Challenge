@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d48bff36d2d2a4553b271ce83c24f42e, type: 3}
+  m_Name: FoxVox
+  m_EditorClassIdentifier: 
+  sourceMesh: {fileID: 5437237583681698853, guid: 029bcbbdf0b6f411bb0bfb6d24a674a5, type: 3}
+  resolution: {x: 64, y: 64, z: 64}
