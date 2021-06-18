@@ -1,5 +1,6 @@
 /[Ll]ibrary/
 /[Tt]emp/
+/[Ll]ogs/
 /[Oo]bj/
 /[Bb]uild/
 /[Bb]uilds/
@@ -40,3 +41,7 @@ FbxExportSettings.asset
 # Rider
 /.idea/
 /Assets/Plugins/Editor/JetBrains*
+
+# Examples from URP template
+Assets/ExampleAssets.meta
+Assets/ExampleAssets/
