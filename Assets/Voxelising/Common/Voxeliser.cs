@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering;
+using Unity.Mathematics;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -34,6 +35,18 @@ namespace VoxelChallenge
                 v.z = max.z;
                 verts[i] = v;
             }
+            var uv = new Vector3[8];
+            uv[0] = new Vector3(0f, 0f, 1f);
+            uv[1] = new Vector3(0f, 1f, 1f);
+            uv[2] = new Vector3(1f, 1f, 1f);
+            uv[3] = new Vector3(1f, 0f, 1f);
+            // Next 4 are first for with max z
+            for (int i = 4; i < uv.Length; i++)
+            {
+                var v = uv[i - 4];
+                v.z = 1f;
+                uv[i] = v;
+            }
 
             // 4 indices per quad, 1 quad per face, 6 faces
             var indices = new int[]
@@ -53,91 +66,57 @@ namespace VoxelChallenge
             };
 
             mesh.vertices = verts;
+            mesh.SetUVs(0, uv);
             mesh.SetIndices(indices, MeshTopology.Quads, 0);
             mesh.RecalculateNormals();
             mesh.bounds = bounds;
             return mesh;
         }
 
-        private static RenderTexture VoxeliseMesh(Mesh mesh, int resolution, Material material)
+        public static Texture2D VoxeliseMesh(Mesh mesh, int resolution, Material material)
         {
-            var volumeUAV = new RenderTexture(resolution, resolution, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear)
-            {
-                name = "Voxelisation UAV",
-                dimension = TextureDimension.Tex3D,
-                volumeDepth = resolution,
-                //antiAliasing = 8,
-                filterMode = FilterMode.Point,
-                enableRandomWrite = true
-            };
-            var volumeOutput = new RenderTexture(resolution, resolution, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear)
-            {
-                name = "Output Voxel Texture",
-                dimension = TextureDimension.Tex3D,
-                volumeDepth = resolution,
-                //antiAliasing = 8,
-                filterMode = FilterMode.Point
-            };
-
-
-            var viewRT = RenderTexture.GetTemporary(resolution*16, resolution*16, 0);
-            var uav2D = RenderTexture.GetTemporary(resolution, resolution * resolution, 0);
-            var outRT = RenderTexture.GetTemporary(resolution, resolution * resolution, 0);
-            uav2D.enableRandomWrite = true;
-
-            var uav2DBuf = new ComputeBuffer(resolution * resolution * resolution * sizeof(float) * 4, sizeof(float) * 4, ComputeBufferType.Structured);
+            var voxelUAVbuffer = new ComputeBuffer(resolution * resolution * resolution, sizeof(float) * 4, ComputeBufferType.Default);
+            var localVoxelsBuffer = new float4[resolution * resolution * resolution];
+            var viewRT = RenderTexture.GetTemporary(resolution * 2, resolution * 2, 0);
 
             var viewMatrix = new Matrix4x4();
             var b = mesh.bounds;
             var inverseMaxDimension = 1f / Mathf.Max(b.size.x, b.size.y, b.size.z);
             viewMatrix.SetTRS(-b.min * inverseMaxDimension, Quaternion.identity, Vector3.one * inverseMaxDimension);
 
-            var commands = new CommandBuffer();
+            int metaRes = (int)Mathf.Sqrt(resolution);
 
+            var commands = new CommandBuffer();
             commands.ClearRandomWriteTargets();
-            commands.SetGlobalTexture("_VoxelUAV", uav2D);
-            commands.SetGlobalBuffer("_VoxelUAVBuf", uav2DBuf);
-            commands.SetRandomWriteTarget(2, uav2DBuf, true);
-            commands.SetRenderTarget(uav2D);
+            commands.SetGlobalBuffer("_VoxelUAV", voxelUAVbuffer);
+            commands.SetGlobalInt("_Res", resolution);
+            commands.SetGlobalInt("_MetaRes", metaRes);
+            commands.SetRandomWriteTarget(2, voxelUAVbuffer);
             commands.SetRenderTarget(viewRT);
             commands.ClearRenderTarget(true, true, Color.black);
             commands.DisableScissorRect();
-            commands.SetViewMatrix(Matrix4x4.identity);
+            commands.SetViewMatrix(viewMatrix);
             commands.SetProjectionMatrix(Matrix4x4.identity);
-            commands.DrawMesh(mesh, viewMatrix, material);
-            commands.CopyTexture(uav2D, outRT);
-            commands.CopyTexture(volumeUAV, volumeOutput);
+            commands.DrawMesh(mesh, Matrix4x4.identity, material);
             Graphics.ExecuteCommandBuffer(commands);
 
-            SaveRTToFile(outRT);
+            voxelUAVbuffer.GetData(localVoxelsBuffer);
+            Color[] colors = new Color[localVoxelsBuffer.Length];
+            for (int iter = 0; iter < colors.Length; iter++)
+            {
+                colors[iter].r = localVoxelsBuffer[iter].x;
+                colors[iter].g = localVoxelsBuffer[iter].y;
+                colors[iter].b = localVoxelsBuffer[iter].z;
+                colors[iter].a = localVoxelsBuffer[iter].w;
+            }
+            Texture2D outTex = new Texture2D(resolution * metaRes, resolution * metaRes, TextureFormat.RGBA32, false);
+            outTex.SetPixels(colors);
+
+            voxelUAVbuffer.Release();
             RenderTexture.ReleaseTemporary(viewRT);
-            RenderTexture.ReleaseTemporary(uav2D);
-            RenderTexture.ReleaseTemporary(outRT);
-            uav2DBuf.Release();
-            volumeUAV.Release();
             Graphics.ClearRandomWriteTargets();
 
-            #if UNITY_EDITOR
-            //AssetDatabase.CreateAsset(volumeOutput, "Assets/" + "3dtextout" + ".asset");
-            #endif
-
-            return volumeOutput;
-        }
-
-        public static void SaveRTToFile(RenderTexture rt)
-        {
-            RenderTexture.active = rt;
-            Texture2D tex = new Texture2D(rt.width, rt.height, TextureFormat.RGB24, false);
-            tex.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
-            RenderTexture.active = null;
-
-            byte[] bytes;
-            bytes = tex.EncodeToPNG();
-
-            string path = "Assets/" + "savedout" + ".png";
-            System.IO.File.WriteAllBytes(path, bytes);
-            AssetDatabase.ImportAsset(path);
-            Debug.Log("Saved to " + path);
+            return outTex;
         }
         #endregion
 
@@ -150,8 +129,7 @@ namespace VoxelChallenge
 
             var bounds = voxelAsset.sourceMesh.bounds;
             var mesh = MeshFromBounds(bounds);
-            var texture = VoxeliseMesh(voxelAsset.sourceMesh, voxelAsset.resolution, voxelAsset.voxelisingMaterial);
-            return new VoxelRuntimeRepresentation(bounds, mesh, texture);
+            return new VoxelRuntimeRepresentation(bounds, mesh, null);
         }
     }
 }

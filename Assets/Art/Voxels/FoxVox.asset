@@ -13,4 +13,5 @@ MonoBehaviour:
   m_Name: FoxVox
   m_EditorClassIdentifier: 
   sourceMesh: {fileID: 5437237583681698853, guid: 029bcbbdf0b6f411bb0bfb6d24a674a5, type: 3}
-  resolution: {x: 64, y: 64, z: 64}
+  voxelisingMaterial: {fileID: 2100000, guid: 4b36db9fdb1ae4aab840650eb6c0bce6, type: 2}
+  resolution: 64

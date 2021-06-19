@@ -1,4 +1,7 @@
 ﻿using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEditor;
+using Unity.Mathematics;
 
 namespace VoxelChallenge
 {
@@ -8,15 +11,20 @@ namespace VoxelChallenge
         public Material material;
 
         private VoxelRuntimeRepresentation voxelData;
+        private Material localMaterial;
 
         private void OnEnable()
         {
             voxelData = Voxeliser.Voxelise(voxelAsset);
+            localMaterial = new Material(material);
         }
 
         private void OnDisable()
         {
-            //TODO: This will likely leak, make things Disposable and do proper cleanup
+            if (voxelData != null)
+            {
+                voxelData.Dispose();
+            }
             voxelData = null;
         }
 
@@ -29,7 +37,8 @@ namespace VoxelChallenge
             Graphics.DrawMesh(voxelData.boundsMesh, transform.localToWorldMatrix, material, gameObject.layer);
         }
 
-        #if UNITY_EDITOR
+
+#if UNITY_EDITOR
         private void DrawGrizmosInternal(bool selected)
         {
             if (selected)
