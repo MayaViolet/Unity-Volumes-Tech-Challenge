@@ -18,16 +18,26 @@ namespace VoxelChallenge
         public Mesh sourceMesh;
 
         /// <summary>
+        /// todo
+        /// </summary>
+        [SerializeField]
+        public Material voxelisingMaterial;
+
+        /// <summary>
         /// The resolution of the 3d voxel texture created
         /// </summary>
         [SerializeField]
-        public int resolution = 64;
+        public int resolution = 32;
 
         public bool isValid
         {
             get
             {
                 if (sourceMesh == null || !sourceMesh.isReadable || sourceMesh.vertexCount < 1)
+                {
+                    return false;
+                }
+                if (voxelisingMaterial == null)
                 {
                     return false;
                 }
