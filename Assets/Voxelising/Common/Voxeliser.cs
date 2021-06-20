@@ -98,6 +98,12 @@ namespace VoxelChallenge
             commands.SetViewMatrix(viewMatrix);
             commands.SetProjectionMatrix(Matrix4x4.identity);
             commands.DrawMesh(mesh, Matrix4x4.identity, material);
+            commands.EnableShaderKeyword("VX_SWIZZLE_LEFT");
+            commands.DrawMesh(mesh, Matrix4x4.identity, material);
+            commands.DisableShaderKeyword("VX_SWIZZLE_LEFT");
+            commands.EnableShaderKeyword("VX_SWIZZLE_TOP");
+            commands.DrawMesh(mesh, Matrix4x4.identity, material);
+            commands.DisableShaderKeyword("VX_SWIZZLE_TOP");
             Graphics.ExecuteCommandBuffer(commands);
 
             voxelUAVbuffer.GetData(localVoxelsBuffer);

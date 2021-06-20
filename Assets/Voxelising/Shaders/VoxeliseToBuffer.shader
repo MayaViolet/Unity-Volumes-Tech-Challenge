@@ -19,6 +19,8 @@ Shader "Voxels/_VoxeliseToBuffer"
             #pragma vertex vert
             #pragma fragment frag
 
+            #pragma multi_compile_vertex __ VX_SWIZZLE_LEFT VX_SWIZZLE_TOP
+
             RWStructuredBuffer<float4> _VoxelUAV : register(u2);
             uniform int _Res;
             uniform int _MetaRes;
@@ -47,21 +49,22 @@ Shader "Voxels/_VoxeliseToBuffer"
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 o.outV.xyz = o.vertex.xyz;
                 o.outV.w = 1;
+                // Swizzle render coords to draw side or top views
+                #if VX_SWIZZLE_LEFT
+                o.vertex.xyz = o.vertex.zyx;
+                #endif
+                #if VX_SWIZZLE_TOP
+                o.vertex.xyz = o.vertex.xzy;
+                o.vertex.z *= -1;
+                #endif
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
                 return o;
-            }
-
-            float rand_1_05(in float2 uv)
-            {
-                float2 noise = (frac(sin(dot(uv ,float2(12.9898,78.233)*2.0)) * 43758.5453));
-                return abs(noise.x + noise.y) * 0.5;
             }
 
             fixed4 frag (v2f i) : SV_Target
             {
                 // sample the texture
                 fixed4 col = tex2D(_MainTex, i.uv);
-                //col.rg = i.outV.xy;
                 col.a = 1;
 
                 float3 outCoords = i.outV.xyz;
