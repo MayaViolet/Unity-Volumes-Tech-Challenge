@@ -6,23 +6,31 @@ namespace VoxelChallenge
     {
         public VoxelAsset voxelAsset;
         public Material material;
+        public Material material_LOD;
+        public float LODdistance = 10f;
 
         private VoxelRuntimeRepresentation voxelData;
         private Material localMaterial;
 
+        private void ConfigureMaterial(Material mat)
+        {
+            mat.SetVector("_VX_BoundsMin", voxelData.bounds.min);
+            mat.SetVector("_VX_BoundsMax", voxelData.bounds.max);
+            var size = voxelData.bounds.size;
+            mat.SetVector("_VX_BoundsSize", size);
+            float maxDimension = Mathf.Max(size.x, size.y, size.z);
+            mat.SetFloat("_VX_BoundsMaxDimension", maxDimension);
+            mat.SetVector("_VX_BoundsProportions", size / maxDimension);
+        }
+
         private void OnEnable()
         {
             voxelData = Voxeliser.Voxelise(voxelAsset);
-            localMaterial = new Material(material);
+            localMaterial = material;
             if (voxelData != null)
             {
-                localMaterial.SetVector("_VX_BoundsMin", voxelData.bounds.min);
-                localMaterial.SetVector("_VX_BoundsMax", voxelData.bounds.max);
-                var size = voxelData.bounds.size;
-                localMaterial.SetVector("_VX_BoundsSize", size);
-                float maxDimension = Mathf.Max(size.x, size.y, size.z);
-                localMaterial.SetFloat("_VX_BoundsMaxDimension", maxDimension);
-                localMaterial.SetVector("_VX_BoundsProportions", size/ maxDimension);
+                ConfigureMaterial(localMaterial);
+                ConfigureMaterial(material_LOD);
             }
         }
 
@@ -41,8 +49,14 @@ namespace VoxelChallenge
             {
                 return;
             }
-            localMaterial.SetVector("_VX_NoiseFrameOffset", new Vector2(Random.value, Random.value));
-            Graphics.DrawMesh(voxelData.boundsMesh, transform.localToWorldMatrix, localMaterial, gameObject.layer);
+            var materialToUse = localMaterial;
+            var cameraDistance = Vector3.Distance(Camera.main.transform.position, transform.position);
+            if (cameraDistance > LODdistance)
+            {
+                materialToUse = material_LOD;
+            }
+            materialToUse.SetVector("_VX_NoiseFrameOffset", new Vector2(Random.value, Random.value));
+            Graphics.DrawMesh(voxelData.boundsMesh, transform.localToWorldMatrix, materialToUse, gameObject.layer);
         }
 
 

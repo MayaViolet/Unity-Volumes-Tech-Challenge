@@ -362,7 +362,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   voxelAsset: {fileID: 11400000, guid: 117401ca8cda04f438d9f95968f53da3, type: 2}
-  material: {fileID: 2100000, guid: 6d31a5d2e51d8405fa0fa5da481ec5ae, type: 2}
+  material: {fileID: 2100000, guid: 8066dbe7438fe4040bd0d50589f9a5c6, type: 2}
+  material_LOD: {fileID: 2100000, guid: 55b09446588cf4002baf29b5a9812dfc, type: 2}
+  LODdistance: 10
 --- !u!4 &1964822087
 Transform:
   m_ObjectHideFlags: 0
