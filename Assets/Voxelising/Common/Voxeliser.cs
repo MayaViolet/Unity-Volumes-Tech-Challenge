@@ -82,28 +82,31 @@ namespace VoxelChallenge
             var viewMatrix = new Matrix4x4();
             var b = mesh.bounds;
             var inverseMaxDimension = 1f / Mathf.Max(b.size.x, b.size.y, b.size.z);
-            viewMatrix.SetTRS(-b.min * inverseMaxDimension, Quaternion.identity, Vector3.one * inverseMaxDimension);
-
+            var inverseSize = new Vector3(1f / b.size.x, 1f / b.size.y, 1f / b.size.z);
+            viewMatrix.SetTRS(-b.min * inverseMaxDimension, Quaternion.identity, inverseSize);
+            
             int metaRes = (int)Mathf.Sqrt(resolution);
+            var localMaterial = new Material(material);
+            localMaterial.SetInt("_VX_Res", resolution);
+            localMaterial.SetInt("_VX_MetaRes", metaRes);
 
             var commands = new CommandBuffer();
             commands.ClearRandomWriteTargets();
             commands.SetGlobalBuffer("_VoxelUAV", voxelUAVbuffer);
-            commands.SetGlobalInt("_Res", resolution);
-            commands.SetGlobalInt("_MetaRes", metaRes);
             commands.SetRandomWriteTarget(2, voxelUAVbuffer);
             commands.SetRenderTarget(viewRT);
-            commands.ClearRenderTarget(true, true, Color.black);
-            commands.DisableScissorRect();
             commands.SetViewMatrix(viewMatrix);
             commands.SetProjectionMatrix(Matrix4x4.identity);
-            commands.DrawMesh(mesh, Matrix4x4.identity, material);
-            commands.EnableShaderKeyword("VX_SWIZZLE_LEFT");
-            commands.DrawMesh(mesh, Matrix4x4.identity, material);
-            commands.DisableShaderKeyword("VX_SWIZZLE_LEFT");
-            commands.EnableShaderKeyword("VX_SWIZZLE_TOP");
-            commands.DrawMesh(mesh, Matrix4x4.identity, material);
-            commands.DisableShaderKeyword("VX_SWIZZLE_TOP");
+            for (int submesh = 0; submesh < mesh.subMeshCount; submesh++)
+            {
+                commands.DrawMesh(mesh, Matrix4x4.identity, localMaterial, submesh);
+                commands.EnableShaderKeyword("VX_SWIZZLE_LEFT");
+                commands.DrawMesh(mesh, Matrix4x4.identity, localMaterial, submesh);
+                commands.DisableShaderKeyword("VX_SWIZZLE_LEFT");
+                commands.EnableShaderKeyword("VX_SWIZZLE_TOP");
+                commands.DrawMesh(mesh, Matrix4x4.identity, localMaterial, submesh);
+                commands.DisableShaderKeyword("VX_SWIZZLE_TOP");
+            }
             Graphics.ExecuteCommandBuffer(commands);
 
             voxelUAVbuffer.GetData(localVoxelsBuffer);

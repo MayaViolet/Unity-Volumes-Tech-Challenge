@@ -22,8 +22,8 @@ Shader "Voxels/_VoxeliseToBuffer"
             #pragma multi_compile_vertex __ VX_SWIZZLE_LEFT VX_SWIZZLE_TOP
 
             RWStructuredBuffer<float4> _VoxelUAV : register(u2);
-            uniform int _Res;
-            uniform int _MetaRes;
+            uniform int _VX_Res;
+            uniform int _VX_MetaRes;
 
             #include "UnityCG.cginc"
 
@@ -47,6 +47,7 @@ Shader "Voxels/_VoxeliseToBuffer"
             {
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
+                o.vertex.z *= 2;
                 o.outV.xyz = o.vertex.xyz;
                 o.outV.w = 1;
                 // Swizzle render coords to draw side or top views
@@ -69,11 +70,11 @@ Shader "Voxels/_VoxeliseToBuffer"
 
                 float3 outCoords = i.outV.xyz;
                 outCoords.y *= -1;
-                uint3 outInd = floor(saturate(outCoords)*_Res);
-                uint indexXY = outInd.x + outInd.y * _MetaRes * _Res;
-                uint2 zTile = uint2(outInd.z%_MetaRes, floor(outInd.z/_MetaRes));
-                zTile.y = _MetaRes - zTile.y - 1;
-                uint indexZ = (zTile.x + zTile.y * _MetaRes * _Res) * _Res;
+                uint3 outInd = floor(saturate(outCoords)*_VX_Res);
+                uint indexXY = outInd.x + outInd.y * _VX_MetaRes * _VX_Res;
+                uint2 zTile = uint2(outInd.z%_VX_MetaRes, floor(outInd.z/_VX_MetaRes));
+                zTile.y = _VX_MetaRes - zTile.y - 1;
+                uint indexZ = (zTile.x + zTile.y * _VX_MetaRes * _VX_Res) * _VX_Res;
                 _VoxelUAV[indexXY+indexZ] = col;
                 return col;
             }

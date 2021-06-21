@@ -1,7 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEditor;
-using Unity.Mathematics;
 
 namespace VoxelChallenge
 {
@@ -17,6 +14,16 @@ namespace VoxelChallenge
         {
             voxelData = Voxeliser.Voxelise(voxelAsset);
             localMaterial = new Material(material);
+            if (voxelData != null)
+            {
+                localMaterial.SetVector("_VX_BoundsMin", voxelData.bounds.min);
+                localMaterial.SetVector("_VX_BoundsMax", voxelData.bounds.max);
+                var size = voxelData.bounds.size;
+                localMaterial.SetVector("_VX_BoundsSize", size);
+                float maxDimension = Mathf.Max(size.x, size.y, size.z);
+                localMaterial.SetFloat("_VX_BoundsMaxDimension", maxDimension);
+                localMaterial.SetVector("_VX_BoundsProportions", size/ maxDimension);
+            }
         }
 
         private void OnDisable()
@@ -34,7 +41,8 @@ namespace VoxelChallenge
             {
                 return;
             }
-            Graphics.DrawMesh(voxelData.boundsMesh, transform.localToWorldMatrix, material, gameObject.layer);
+            localMaterial.SetVector("_VX_NoiseFrameOffset", new Vector2(Random.value, Random.value));
+            Graphics.DrawMesh(voxelData.boundsMesh, transform.localToWorldMatrix, localMaterial, gameObject.layer);
         }
 
 
@@ -54,7 +62,7 @@ namespace VoxelChallenge
                 Gizmos.DrawWireSphere(transform.position, 0.5f);
                 return;
             }
-            Gizmos.DrawWireMesh(voxelData.boundsMesh);
+            Gizmos.DrawWireMesh(voxelData.boundsMesh, transform.position, transform.rotation, transform.lossyScale);
         }
 
         private void OnDrawGizmos()
