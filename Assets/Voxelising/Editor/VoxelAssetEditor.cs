@@ -52,6 +52,7 @@ namespace VoxelChallenge
             settings.flipbookColumns = metaRes;
             settings.flipbookRows = metaRes;
             settings.alphaSource = TextureImporterAlphaSource.FromInput;
+            settings.wrapMode = TextureWrapMode.Clamp;
             importer.SetTextureSettings(settings);
             importer.SaveAndReimport();
 
