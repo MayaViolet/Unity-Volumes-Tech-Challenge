@@ -72,6 +72,7 @@ namespace VoxelChallenge
             mesh.bounds = bounds;
             return mesh;
         }
+        #endregion
 
         public static Texture2D VoxeliseMesh(Mesh mesh, int resolution, Material material)
         {
@@ -84,7 +85,7 @@ namespace VoxelChallenge
             var inverseMaxDimension = 1f / Mathf.Max(b.size.x, b.size.y, b.size.z);
             var inverseSize = new Vector3(1f / b.size.x, 1f / b.size.y, 1f / b.size.z);
             viewMatrix.SetTRS(-b.min * inverseMaxDimension, Quaternion.identity, inverseSize);
-            
+
             int metaRes = (int)Mathf.Sqrt(resolution);
             var localMaterial = new Material(material);
             localMaterial.SetInt("_VX_Res", resolution);
@@ -127,18 +128,17 @@ namespace VoxelChallenge
 
             return outTex;
         }
-        #endregion
 
-        public static VoxelRuntimeRepresentation Voxelise(VoxelAsset voxelAsset)
+        public static VoxelRuntimeRepresentation PrepareVoxelRepresentation(VoxelAsset voxelAsset)
         {
-            if (!voxelAsset.isValid)
+            if (!voxelAsset.isReadyToDraw)
             {
                 return null;
             }
 
             var bounds = voxelAsset.sourceMesh.bounds;
             var mesh = MeshFromBounds(bounds);
-            return new VoxelRuntimeRepresentation(bounds, mesh, null);
+            return new VoxelRuntimeRepresentation(bounds, mesh, voxelAsset.voxelTexture);
         }
     }
 }

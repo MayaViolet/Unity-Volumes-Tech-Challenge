@@ -1,4 +1,4 @@
-Shader "Voxels/VoxelDirectView"
+Shader "Voxels/VoxelRayMarch"
 {
     Properties
     {
@@ -85,7 +85,6 @@ Shader "Voxels/VoxelDirectView"
                 // Scale from model proportions to uniform proportions
                 rayDirection = rayDirection / _VX_BoundsProportions;
                 
-                // Get exit point
                 float stepSize = (1.0f / STEP_COUNT);
                 float longestAxis = max(abs(rayDirection.x), max(abs(rayDirection.y), abs(rayDirection.z)));
                 stepSize /= longestAxis;

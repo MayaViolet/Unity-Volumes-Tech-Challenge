@@ -15,3 +15,4 @@ MonoBehaviour:
   sourceMesh: {fileID: 5437237583681698853, guid: 029bcbbdf0b6f411bb0bfb6d24a674a5, type: 3}
   voxelisingMaterial: {fileID: 2100000, guid: 4b36db9fdb1ae4aab840650eb6c0bce6, type: 2}
   resolution: 64
+  voxelTexture: {fileID: 11700000, guid: 93f7b9ecfedec4170a1b3a36754d2953, type: 3}

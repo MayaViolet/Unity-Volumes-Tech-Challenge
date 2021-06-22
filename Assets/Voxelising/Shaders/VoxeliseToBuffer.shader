@@ -1,4 +1,4 @@
-Shader "Voxels/_VoxeliseToBuffer"
+Shader "Voxels/VoxeliseToBuffer"
 {
     Properties
     {

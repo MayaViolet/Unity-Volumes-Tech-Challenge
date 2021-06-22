@@ -41,24 +41,23 @@ namespace VoxelChallenge
             var pathFilename = Path.GetFileNameWithoutExtension(path);
             path = Path.Combine(pathDirectory, pathFilename + "_baked.png");
 
-            var doFirstSetup = !File.Exists(path);
-
             File.WriteAllBytes(path, pngData);
             AssetDatabase.ImportAsset(path);
             Debug.Log("Saved to " + path);
+            
+            int metaRes = (int)Mathf.Sqrt(asset.resolution);
+            var importer = TextureImporter.GetAtPath(path) as TextureImporter;
+            var settings = new TextureImporterSettings();
+            settings.textureShape = TextureImporterShape.Texture3D;
+            settings.flipbookColumns = metaRes;
+            settings.flipbookRows = metaRes;
+            settings.alphaSource = TextureImporterAlphaSource.FromInput;
+            importer.SetTextureSettings(settings);
+            importer.SaveAndReimport();
 
-            if (doFirstSetup)
-            {
-                int metaRes = (int)Mathf.Sqrt(asset.resolution);
-                var importer = TextureImporter.GetAtPath(path) as TextureImporter;
-                var settings = new TextureImporterSettings();
-                settings.textureShape = TextureImporterShape.Texture3D;
-                settings.flipbookColumns = metaRes;
-                settings.flipbookRows = metaRes;
-                settings.alphaSource = TextureImporterAlphaSource.FromInput;
-                importer.SetTextureSettings(settings);
-                importer.SaveAndReimport();
-            }
+            asset.voxelTexture = AssetDatabase.LoadAssetAtPath<Texture3D>(path);
+            EditorUtility.SetDirty(asset);
+            AssetDatabase.SaveAssets();
         }
     }
 }

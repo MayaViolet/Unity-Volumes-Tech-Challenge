@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Voxelise-Basic
+  m_Name: Voxelise-Fox
   m_Shader: {fileID: 4800000, guid: d0562e82525554725a9e301a5c8ea321, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4

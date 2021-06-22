@@ -5,9 +5,7 @@ namespace VoxelChallenge
     public class VoxelRenderer : MonoBehaviour
     {
         public VoxelAsset voxelAsset;
-        public Material material;
-        public Material material_LOD;
-        public float LODdistance = 10f;
+        public Material material_override;
 
         private VoxelRuntimeRepresentation voxelData;
         private Material localMaterial;
@@ -25,42 +23,41 @@ namespace VoxelChallenge
 
         private void OnEnable()
         {
-            voxelData = Voxeliser.Voxelise(voxelAsset);
-            localMaterial = material;
-            if (voxelData != null)
+            voxelData = Voxeliser.PrepareVoxelRepresentation(voxelAsset);
+            if (voxelData == null)
             {
-                ConfigureMaterial(localMaterial);
-                ConfigureMaterial(material_LOD);
+                return;
             }
+
+            if (material_override != null)
+            {
+                localMaterial = new Material(material_override);
+            }
+            else
+            {
+                localMaterial = new Material(Shader.Find("Voxels/VoxelRayMarch"));
+                localMaterial.mainTexture = voxelData.voxelTexture;
+            }
+            ConfigureMaterial(localMaterial);
         }
 
         private void OnDisable()
         {
-            if (voxelData != null)
-            {
-                voxelData.Dispose();
-            }
-            voxelData = null;
+            
         }
 
         private void Update()
         {
-            if (voxelData == null || material == null)
+            if (voxelData == null || localMaterial == null)
             {
                 return;
             }
-            var materialToUse = localMaterial;
-            var cameraDistance = Vector3.Distance(Camera.main.transform.position, transform.position);
-            if (cameraDistance > LODdistance)
-            {
-                materialToUse = material_LOD;
-            }
-            materialToUse.SetVector("_VX_NoiseFrameOffset", new Vector2(Random.value, Random.value));
-            Graphics.DrawMesh(voxelData.boundsMesh, transform.localToWorldMatrix, materialToUse, gameObject.layer);
+            
+            localMaterial.SetVector("_VX_NoiseFrameOffset", new Vector2(Random.value, Random.value));
+            Graphics.DrawMesh(voxelData.boundsMesh, transform.localToWorldMatrix, localMaterial, gameObject.layer);
         }
 
-
-#if UNITY_EDITOR
+        #if UNITY_EDITOR
         private void DrawGrizmosInternal(bool selected)
         {
             if (selected)
@@ -71,7 +68,7 @@ namespace VoxelChallenge
             {
                 Gizmos.color = Color.gray;
             }
-            if (voxelData == null || material == null)
+            if (voxelData == null || localMaterial == null)
             {
                 Gizmos.DrawWireSphere(transform.position, 0.5f);
                 return;

@@ -18,7 +18,8 @@ namespace VoxelChallenge
         public Mesh sourceMesh;
 
         /// <summary>
-        /// todo
+        /// Material to use for voxelisation
+        /// This should use the "Voxels/VoxeliseToBuffer" shader
         /// </summary>
         [SerializeField]
         public Material voxelisingMaterial;
@@ -29,11 +30,17 @@ namespace VoxelChallenge
         [SerializeField]
         public int resolution = 32;
 
+        /// <summary>
+        /// The baked voxel texture, for passing to renderer at runtime
+        /// </summary>
+        [HideInInspector]
+        public Texture3D voxelTexture;
+
         public bool isValid
         {
             get
             {
-                if (sourceMesh == null || !sourceMesh.isReadable || sourceMesh.vertexCount < 1)
+                if (sourceMesh == null || sourceMesh.vertexCount < 1)
                 {
                     return false;
                 }
@@ -42,6 +49,22 @@ namespace VoxelChallenge
                     return false;
                 }
                 if (resolution < 1)
+                {
+                    return false;
+                }
+                return true;
+            }
+        }
+
+        public bool isReadyToDraw
+        {
+            get
+            {
+                if (!isValid)
+                {
+                    return false;
+                }
+                if (voxelTexture == null)
                 {
                     return false;
                 }

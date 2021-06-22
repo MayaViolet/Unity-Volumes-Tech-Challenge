@@ -7,7 +7,7 @@ namespace VoxelChallenge
     /// A container for everything needed to render voxels
     /// This is the ephemeral generated runtime data, not the persistent assets
     /// </summary>
-    public class VoxelRuntimeRepresentation : IDisposable
+    public class VoxelRuntimeRepresentation
     {
         /// <summary>
         /// Bounds of the voxel object, for culling etc
@@ -20,21 +20,13 @@ namespace VoxelChallenge
         /// <summary>
         /// 3D texture of voxel data
         /// </summary>
-        public readonly RenderTexture voxelTexture;
+        public readonly Texture3D voxelTexture;
 
-        public VoxelRuntimeRepresentation(Bounds bounds, Mesh boundsMesh, RenderTexture voxelTexture)
+        public VoxelRuntimeRepresentation(Bounds bounds, Mesh boundsMesh, Texture3D voxelTexture)
         {
             this.bounds = bounds;
             this.boundsMesh = boundsMesh;
             this.voxelTexture = voxelTexture;
-        }
-
-        public void Dispose()
-        {
-            if (voxelTexture != null)
-            {
-                voxelTexture.Release();
-            }
         }
     }
 }
