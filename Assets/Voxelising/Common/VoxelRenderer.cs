@@ -12,13 +12,15 @@ namespace VoxelChallenge
 
         private void ConfigureMaterial(Material mat)
         {
+            var size = voxelData.bounds.size;
+            float maxDimension = Mathf.Max(size.x, size.y, size.z);
+
             mat.SetVector("_VX_BoundsMin", voxelData.bounds.min);
             mat.SetVector("_VX_BoundsMax", voxelData.bounds.max);
-            var size = voxelData.bounds.size;
             mat.SetVector("_VX_BoundsSize", size);
-            float maxDimension = Mathf.Max(size.x, size.y, size.z);
             mat.SetFloat("_VX_BoundsMaxDimension", maxDimension);
             mat.SetVector("_VX_BoundsProportions", size / maxDimension);
+            mat.SetInt("_VX_RaymarchStepCount", voxelData.voxelTexture.width);
         }
 
         private void OnEnable()

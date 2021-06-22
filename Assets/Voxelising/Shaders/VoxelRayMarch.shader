@@ -4,6 +4,7 @@ Shader "Voxels/VoxelRayMarch"
     {
         [NoScaleOffset]
         _MainTex ("Texture", 3D) = "white" {}
+
         [NoScaleOffset]
         _NoiseTex ("Noise", 2D) = "black" {}
         [Toggle(VX_NOISE_JITTER)]
@@ -20,6 +21,10 @@ Shader "Voxels/VoxelRayMarch"
             #pragma vertex vert
             #pragma fragment frag
 
+            // Integers required for raymarch loop to be dynamic based on input voxel resolution
+            #pragma require integers
+            
+            // Jitter sample position for smoothing when used with TAA
             #pragma shader_feature VX_NOISE_JITTER
 
             #include "UnityCG.cginc"
@@ -38,10 +43,12 @@ Shader "Voxels/VoxelRayMarch"
             };
 
             sampler3D _MainTex;
-            float4 _MainTex_ST;
 
+            #ifdef VX_NOISE_JITTER
             sampler2D _NoiseTex;
+            float4 _NoiseTex_TexelSize;
             uniform float2 _VX_NoiseFrameOffset;
+            #endif
 
             uniform float3 _VX_BoundsMin;
             uniform float3 _VX_BoundsMax;
@@ -49,7 +56,7 @@ Shader "Voxels/VoxelRayMarch"
             uniform float3 _VX_BoundsProportions;
             uniform float  _VX_BoundsMaxDimension;
 
-            #define STEP_COUNT 16
+            uniform uint _VX_RaymarchStepCount;
 
             // Allowed floating point inaccuracy
             #define EPSILON 0.00001f
@@ -72,7 +79,7 @@ Shader "Voxels/VoxelRayMarch"
             fixed4 frag (v2f i) : SV_Target
             {
                 #ifdef VX_NOISE_JITTER
-                float2 noiseUV = i.vertex.xy * _ScreenParams.x / 16.0f + _VX_NoiseFrameOffset;
+                float2 noiseUV = i.vertex.xy * _ScreenParams.x * _NoiseTex_TexelSize.xy + _VX_NoiseFrameOffset;
                 fixed noiseValue = tex2D(_NoiseTex, noiseUV);
                 #endif
 
@@ -85,7 +92,8 @@ Shader "Voxels/VoxelRayMarch"
                 // Scale from model proportions to uniform proportions
                 rayDirection = rayDirection / _VX_BoundsProportions;
                 
-                float stepSize = (1.0f / STEP_COUNT);
+                // Dividing our step vector by our longest axis gets the step size for one whole voxel
+                float stepSize = (1.0f / _VX_RaymarchStepCount);
                 float longestAxis = max(abs(rayDirection.x), max(abs(rayDirection.y), abs(rayDirection.z)));
                 stepSize /= longestAxis;
                 rayDirection *= stepSize;
@@ -97,9 +105,9 @@ Shader "Voxels/VoxelRayMarch"
 
                 // Raymarch through object space
                 float4 best = float4(0,0,0,0);
-                for (int i = 0; i < STEP_COUNT; i++)
+                for (int i = 0; i < _VX_RaymarchStepCount; i++)
                 {
-                    // Accumulate color only within unit cube bounds
+                    // Sample only within unit cube bounds
                     if(max(abs(samplePosition.x-0.5f), max(abs(samplePosition.y-0.5f), abs(samplePosition.z-0.5f))) < 0.5f + EPSILON)
                     {
                         float4 sampledColor = tex3D(_MainTex, samplePosition);
@@ -112,7 +120,7 @@ Shader "Voxels/VoxelRayMarch"
                     }
                 }
 
-                clip(best.a - 0.1f);
+                clip(best.a - EPSILON);
                 return best;
             }
             ENDCG
