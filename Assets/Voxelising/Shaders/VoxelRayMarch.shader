@@ -18,9 +18,7 @@ Shader "Voxels/VoxelRayMarch"
         Pass
         {
             CGPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
-
+            
             // Integers required for raymarch loop to be dynamic based on input voxel resolution
             #pragma require integers
             
@@ -28,19 +26,10 @@ Shader "Voxels/VoxelRayMarch"
             #pragma shader_feature VX_NOISE_JITTER
 
             #include "UnityCG.cginc"
+            #include "VoxelCommon.cginc"
 
-            struct appdata
-            {
-                float4 vertex : POSITION;
-                float3 uv : TEXCOORD0;
-            };
-
-            struct v2f
-            {
-                float4 vertex : SV_POSITION;
-                float3 uv : TEXCOORD0;
-                float3 vectorToSurface : TEXCOORD1;
-            };
+            #pragma vertex VX_VertexStage
+            #pragma fragment frag
 
             sampler3D _MainTex;
 
@@ -50,31 +39,12 @@ Shader "Voxels/VoxelRayMarch"
             uniform float2 _VX_NoiseFrameOffset;
             #endif
 
-            uniform float3 _VX_BoundsMin;
-            uniform float3 _VX_BoundsMax;
-            uniform float3 _VX_BoundsSize;
-            uniform float3 _VX_BoundsProportions;
-            uniform float  _VX_BoundsMaxDimension;
-
             uniform uint _VX_RaymarchStepCount;
 
             // Allowed floating point inaccuracy
             #define EPSILON 0.00001f
-            
-            v2f vert (appdata v)
-            {
-                v2f o;
-                o.vertex = UnityObjectToClipPos(v.vertex);
-                o.uv = (v.vertex - _VX_BoundsMin) / _VX_BoundsSize;
 
-                // Calculate vector from camera to vertex in world space
-                float3 worldVertex = mul(unity_ObjectToWorld, v.vertex).xyz;
-                o.vectorToSurface = worldVertex - _WorldSpaceCameraPos;
-
-                return o;
-            }
-
-            fixed4 frag (v2f i) : SV_Target
+            fixed4 frag (vx_varyings i) : SV_Target
             {
                 #ifdef VX_NOISE_JITTER
                 float2 noiseUV = i.vertex.xy * _ScreenParams.x * _NoiseTex_TexelSize.xy + _VX_NoiseFrameOffset;
@@ -84,11 +54,7 @@ Shader "Voxels/VoxelRayMarch"
                 // Start raymarching at the front surface of the object
                 float3 rayOrigin = i.uv;
 
-                // Use vector from camera to object surface to get ray direction
-                float3 rayDirection = mul(unity_WorldToObject, float4(normalize(i.vectorToSurface), 0));
-
-                // Scale from model proportions to uniform proportions
-                rayDirection = rayDirection / _VX_BoundsProportions;
+                float3 rayDirection = VX_TextureSpaceViewDirection(i.vectorToSurface);
                 
                 // Dividing our step vector by our longest axis gets the step size for one whole voxel
                 float stepSize = (1.0f / _VX_RaymarchStepCount);

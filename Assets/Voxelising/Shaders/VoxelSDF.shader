@@ -17,58 +17,24 @@ Shader "Voxels/VoxelSDF"
         Pass
         {
             CGPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
 
             #include "UnityCG.cginc"
+            #include "VoxelCommon.cginc"
 
-            struct appdata
-            {
-                float4 vertex : POSITION;
-                float3 uv : TEXCOORD0;
-            };
-
-            struct v2f
-            {
-                float4 vertex : SV_POSITION;
-                float3 uv : TEXCOORD0;
-                float3 vectorToSurface : TEXCOORD1;
-            };
+            #pragma vertex VX_VertexStage
+            #pragma fragment frag
 
             sampler3D _MainTex;
-            float4 _MainTex_ST;
 
             sampler3D _SDFTex;
-            float4 _SDFTex_ST;
             float _DistanceScale;
             float _SurfaceOffset;
-
-            uniform float3 _VX_BoundsMin;
-            uniform float3 _VX_BoundsMax;
-            uniform float3 _VX_BoundsSize;
-            uniform float3 _VX_BoundsProportions;
-            uniform float  _VX_BoundsMaxDimension;
 
             // Allowed floating point inaccuracy
             #define EPSILON 0.00001f
             #define STEP_COUNT 8
 
-            v2f vert (appdata v)
-            {
-                v2f o;
-                o.vertex = UnityObjectToClipPos(v.vertex);
-                float3 _testSize = float3(1.0f, 1.0f, 1.0f);
-                float3 _testMin = float3(-0.5f, -0.5f, -0.5f);
-                o.uv = (v.vertex - _VX_BoundsMin) / _VX_BoundsSize;
-
-                // Calculate vector from camera to vertex in world space
-                float3 worldVertex = mul(unity_ObjectToWorld, v.vertex).xyz;
-                o.vectorToSurface = worldVertex - _WorldSpaceCameraPos;
-
-                return o;
-            }
-
-            fixed4 frag (v2f i) : SV_Target
+            fixed4 frag (vx_varyings i) : SV_Target
             {
 
                 // Start raymarching at the front surface of the object
