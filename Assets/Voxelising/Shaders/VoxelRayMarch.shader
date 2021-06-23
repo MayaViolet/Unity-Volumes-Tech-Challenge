@@ -65,8 +65,6 @@ Shader "Voxels/VoxelRayMarch"
             {
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
-                float3 _testSize = float3(1.0f, 1.0f, 1.0f);
-                float3 _testMin = float3(-0.5f, -0.5f, -0.5f);
                 o.uv = (v.vertex - _VX_BoundsMin) / _VX_BoundsSize;
 
                 // Calculate vector from camera to vertex in world space
@@ -87,7 +85,7 @@ Shader "Voxels/VoxelRayMarch"
                 float3 rayOrigin = i.uv;
 
                 // Use vector from camera to object surface to get ray direction
-                float3 rayDirection = mul(unity_WorldToObject, float4(normalize(i.vectorToSurface), 1));
+                float3 rayDirection = mul(unity_WorldToObject, float4(normalize(i.vectorToSurface), 0));
 
                 // Scale from model proportions to uniform proportions
                 rayDirection = rayDirection / _VX_BoundsProportions;
