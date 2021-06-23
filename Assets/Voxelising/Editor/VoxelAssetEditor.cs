@@ -62,7 +62,7 @@ namespace VoxelChallenge
                 return;
             }
             // Bake texture
-            var bakedTexture = Voxeliser.VoxeliseMesh(asset.sourceMesh, asset.resolution, asset.voxelisingMaterial);
+            var bakedTexture = Voxeliser.VoxeliseMesh(asset.sourceMesh, (int)asset.resolution, asset.voxelisingMaterial);
             var pngData = bakedTexture.EncodeToPNG();
 
             // Save out baked texture as png
@@ -72,7 +72,7 @@ namespace VoxelChallenge
             Debug.Log("Saved to " + path);
 
             // Configure texture settings
-            int metaRes = (int)Mathf.Sqrt(asset.resolution);
+            int metaRes = (int)Mathf.Sqrt((int)asset.resolution);
             var importer = TextureImporter.GetAtPath(path) as TextureImporter;
             var settings = new TextureImporterSettings();
             settings.textureShape = TextureImporterShape.Texture3D;

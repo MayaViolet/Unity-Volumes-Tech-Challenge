@@ -10,6 +10,14 @@ namespace VoxelChallenge
     [CreateAssetMenu(fileName = "Voxel Asset", menuName = "Voxels/Voxel Asset", order = 2)]
     public class VoxelAsset : ScriptableObject
     {
+        public enum VoxelResolution
+        {
+            res4 = 1,
+            res16 = 16,
+            res64 = 64,
+            res256 = 256
+        };
+
         /// <summary>
         /// The mesh to be voxelised
         /// </summary>
@@ -27,7 +35,7 @@ namespace VoxelChallenge
         /// The resolution of the 3d voxel texture created
         /// </summary>
         [SerializeField]
-        public int resolution = 32;
+        public VoxelResolution resolution = VoxelResolution.res64;
 
         /// <summary>
         /// The baked voxel texture, for passing to renderer at runtime
@@ -53,10 +61,6 @@ namespace VoxelChallenge
             if (voxelisingMaterial == null)
             {
                 return "Missing voxelising material";
-            }
-            if (resolution < 1)
-            {
-                return "Resolution must be at least 1";
             }
             return null;
         }

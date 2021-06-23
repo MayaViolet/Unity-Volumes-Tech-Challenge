@@ -22,7 +22,7 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: Fox_Raymarch
   m_Shader: {fileID: 4800000, guid: 740b2a3ffddd44bcfa539966603f0872, type: 3}
-  m_ShaderKeywords: 
+  m_ShaderKeywords: VX_NOISE_JITTER
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -124,7 +124,7 @@ Material:
     - _SrcBlend: 1
     - _Surface: 0
     - _SurfaceOffset: 0.15
-    - _ToggleNoiseJitter: 0
+    - _ToggleNoiseJitter: 1
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:
