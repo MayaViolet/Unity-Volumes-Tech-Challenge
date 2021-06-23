@@ -10,6 +10,14 @@ namespace VoxelChallenge
         public override void OnInspectorGUI()
         {
             DrawDefaultInspector();
+            if (GUILayout.Button("Create blank voxelising material"))
+            {
+                foreach (VoxelAsset asset in targets)
+                {
+                    CreateBlankVoxeliseMaterial(asset);
+                }
+            }
+
             if (GUILayout.Button("Bake Texture"))
             {
                 foreach (VoxelAsset asset in targets)
@@ -17,14 +25,24 @@ namespace VoxelChallenge
                     BakeTexture(asset);
                 }
             }
+
             GUI.color = Color.red;
             foreach (VoxelAsset asset in targets)
             {
                 if (!asset.isValid)
                 {
-                    GUILayout.Label(asset.name + " is invalid!");
+                    string problemText = asset.GetProblemDescription();
+                    GUILayout.Label(asset.name + " is invalid! "+problemText);
                 }
             }
+        }
+
+        private string GetAppendedPath(VoxelAsset asset, string ending)
+        {
+            var path = AssetDatabase.GetAssetPath(asset);
+            var pathDirectory = Path.GetDirectoryName(path);
+            var pathFilename = Path.GetFileNameWithoutExtension(path);
+            return Path.Combine(pathDirectory, pathFilename + ending);
         }
 
         private void BakeTexture(VoxelAsset asset)
@@ -36,10 +54,7 @@ namespace VoxelChallenge
             var bakedTexture = Voxeliser.VoxeliseMesh(asset.sourceMesh, asset.resolution, asset.voxelisingMaterial);
             var pngData = bakedTexture.EncodeToPNG();
 
-            var path = AssetDatabase.GetAssetPath(asset);
-            var pathDirectory = Path.GetDirectoryName(path);
-            var pathFilename = Path.GetFileNameWithoutExtension(path);
-            path = Path.Combine(pathDirectory, pathFilename + "_baked.png");
+            var path = GetAppendedPath(asset, "_baked.png");
 
             File.WriteAllBytes(path, pngData);
             AssetDatabase.ImportAsset(path);
@@ -57,6 +72,22 @@ namespace VoxelChallenge
             importer.SaveAndReimport();
 
             asset.voxelTexture = AssetDatabase.LoadAssetAtPath<Texture3D>(path);
+            EditorUtility.SetDirty(asset);
+            AssetDatabase.SaveAssets();
+        }
+
+        private void CreateBlankVoxeliseMaterial(VoxelAsset asset)
+        {
+            var path = GetAppendedPath(asset, "_voxelise.mat");
+            if (File.Exists(path))
+            {
+                return;
+            }
+
+            Material material = new Material(Shader.Find("Voxels/VoxeliseToBuffer"));
+            AssetDatabase.CreateAsset(material, path);
+            AssetDatabase.ImportAsset(path);
+            asset.voxelisingMaterial = AssetDatabase.LoadAssetAtPath<Material>(path);
             EditorUtility.SetDirty(asset);
             AssetDatabase.SaveAssets();
         }

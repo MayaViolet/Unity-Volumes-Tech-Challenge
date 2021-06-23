@@ -36,23 +36,33 @@ namespace VoxelChallenge
         [HideInInspector]
         public Texture3D voxelTexture;
 
+        public string GetProblemDescription()
+        {
+            if (sourceMesh == null)
+            {
+                return "Missing mesh";
+            }
+            if (sourceMesh.vertexCount < 1)
+            {
+                return "Empty mesh";
+            }
+            if (voxelisingMaterial == null)
+            {
+                return "Missing voxelising material";
+            }
+            if (resolution < 1)
+            {
+                return "Resolution must be at least 1";
+            }
+            return null;
+        }
+
         public bool isValid
         {
             get
             {
-                if (sourceMesh == null || sourceMesh.vertexCount < 1)
-                {
-                    return false;
-                }
-                if (voxelisingMaterial == null)
-                {
-                    return false;
-                }
-                if (resolution < 1)
-                {
-                    return false;
-                }
-                return true;
+                var problemText = GetProblemDescription();
+                return string.IsNullOrEmpty(problemText);
             }
         }
 
