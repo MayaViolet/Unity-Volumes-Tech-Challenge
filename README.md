@@ -35,3 +35,5 @@ A second deviation from the method was that I'm developing this in MacOS, and Me
 -Volume rendering
 
 In order to have a baseline implementation to work off, I created a brute-force raymarching shader. This is useful as a comparison point for any more sophisticated methods.
+
+I created the start of a sphere-marching implementation that used a Signed Distance Field for better performance. I made the SDF in Houdini but it didn't match up exactly with the voxels created in unity, so the results are off. It does get a better surface shape with much fewer samples than the raymarcher though.
