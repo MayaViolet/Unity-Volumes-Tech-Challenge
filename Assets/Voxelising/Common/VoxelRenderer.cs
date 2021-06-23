@@ -2,14 +2,27 @@
 
 namespace VoxelChallenge
 {
+    /// <summary>
+    /// Component for rendering voxel data
+    /// </summary>
     public class VoxelRenderer : MonoBehaviour
     {
+        /// <summary>
+        /// The VoxelAsset of the object to render
+        /// </summary>
         public VoxelAsset voxelAsset;
+        /// <summary>
+        /// Optional material to use for rendering instead of a generated material
+        /// </summary>
         public Material material_override;
 
         private VoxelRuntimeRepresentation voxelData;
         private Material localMaterial;
 
+        /// <summary>
+        /// Assign the global shader values needed by voxel shaders
+        /// </summary>
+        /// <param name="mat">The material to configure</param>
         private void ConfigureMaterial(Material mat)
         {
             var size = voxelData.bounds.size;
@@ -25,6 +38,7 @@ namespace VoxelChallenge
 
         private void OnEnable()
         {
+            // Data & materials needed for rendering are setup on enable
             voxelData = Voxeliser.PrepareVoxelRepresentation(voxelAsset);
             if (voxelData == null)
             {

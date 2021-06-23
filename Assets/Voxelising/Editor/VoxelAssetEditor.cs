@@ -37,6 +37,12 @@ namespace VoxelChallenge
             }
         }
 
+        /// <summary>
+        /// Adds a prefix to the end of an asset's path
+        /// </summary>
+        /// <param name="asset"></param>
+        /// <param name="ending"></param>
+        /// <returns></returns>
         private string GetAppendedPath(VoxelAsset asset, string ending)
         {
             var path = AssetDatabase.GetAssetPath(asset);
@@ -45,21 +51,27 @@ namespace VoxelChallenge
             return Path.Combine(pathDirectory, pathFilename + ending);
         }
 
+        /// <summary>
+        /// Bakes the voxel volume texture & saves it to a png texture asset
+        /// </summary>
+        /// <param name="asset"></param>
         private void BakeTexture(VoxelAsset asset)
         {
             if (!asset.isValid)
             {
                 return;
             }
+            // Bake texture
             var bakedTexture = Voxeliser.VoxeliseMesh(asset.sourceMesh, asset.resolution, asset.voxelisingMaterial);
             var pngData = bakedTexture.EncodeToPNG();
 
+            // Save out baked texture as png
             var path = GetAppendedPath(asset, "_baked.png");
-
             File.WriteAllBytes(path, pngData);
             AssetDatabase.ImportAsset(path);
             Debug.Log("Saved to " + path);
-            
+
+            // Configure texture settings
             int metaRes = (int)Mathf.Sqrt(asset.resolution);
             var importer = TextureImporter.GetAtPath(path) as TextureImporter;
             var settings = new TextureImporterSettings();
@@ -71,11 +83,16 @@ namespace VoxelChallenge
             importer.SetTextureSettings(settings);
             importer.SaveAndReimport();
 
+            // Assign generated texture to the VoxelAsset property
             asset.voxelTexture = AssetDatabase.LoadAssetAtPath<Texture3D>(path);
             EditorUtility.SetDirty(asset);
             AssetDatabase.SaveAssets();
         }
 
+        /// <summary>
+        /// Creates & assigns a blank voxelising material
+        /// </summary>
+        /// <param name="asset"></param>
         private void CreateBlankVoxeliseMaterial(VoxelAsset asset)
         {
             var path = GetAppendedPath(asset, "_voxelise.mat");

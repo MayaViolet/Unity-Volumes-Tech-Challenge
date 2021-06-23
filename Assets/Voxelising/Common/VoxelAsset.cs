@@ -5,8 +5,7 @@ namespace VoxelChallenge
 {
     /// <summary>
     /// An asset representing voxel content
-    /// A wrapper around a method to generate voxel data & the settings for that generation
-    /// TODO: Genericise between different voxel data sources, eg procedural
+    /// A wrapper around generated voxel data & the settings for that generation
     /// </summary>
     [CreateAssetMenu(fileName = "Voxel Asset", menuName = "Voxels/Voxel Asset", order = 2)]
     public class VoxelAsset : ScriptableObject
@@ -36,6 +35,11 @@ namespace VoxelChallenge
         [HideInInspector]
         public Texture3D voxelTexture;
 
+        /// <summary>
+        /// Checks for valid inputs & returns a string describing any problems
+        /// Return string is empty if it's all good
+        /// </summary>
+        /// <returns></returns>
         public string GetProblemDescription()
         {
             if (sourceMesh == null)
@@ -57,6 +61,10 @@ namespace VoxelChallenge
             return null;
         }
 
+        /// <summary>
+        /// Check if there's a problem, returns true if all good
+        /// This only checks offline data needed for baking the voxel data
+        /// </summary>
         public bool isValid
         {
             get
@@ -66,6 +74,9 @@ namespace VoxelChallenge
             }
         }
 
+        /// <summary>
+        /// Checks if everything needed to render is present
+        /// </summary>
         public bool isReadyToDraw
         {
             get
